@@ -2,12 +2,11 @@ import React from 'react';
 import {
   ProSidebar,
   Menu,
-  MenuItem,
-  SidebarContent,
+  MenuItem
 } from 'react-pro-sidebar';
 import {FaGem} from 'react-icons/fa';
 
-const Aside = () => {
+const Aside = ({setPict, setUndo, setRedo}) => {
   return (
     <ProSidebar breakPoint='md'>
         <Menu iconShape="square">
