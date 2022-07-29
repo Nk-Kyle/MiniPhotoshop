@@ -14,6 +14,8 @@ const Main = ({pict, setPict, undo, setUndo, redo, setRedo}) => {
     const base64 = await toBase64(file);
     setPict(base64);
     setBasePict(base64);
+    setUndo([]);
+    setRedo([]);
   }
 
   const toBase64 = (file) => {
@@ -57,7 +59,7 @@ const Main = ({pict, setPict, undo, setUndo, redo, setRedo}) => {
       <ButtonGroup aria-label="Basic example" className="mt-3">
         <Button variant="outline-primary" onClick={undoChanges}>Undo</Button>
         <Button variant="outline-primary" onClick={resetChanges}>Reset</Button>
-        <Button variant="outline-primary" onclick={redoChanges}>Redo</Button>
+        <Button variant="outline-primary" onClick={redoChanges}>Redo</Button>
       </ButtonGroup>
       <Container fluid className="d-flex mt-3 justify-content-center" style={{maxHeight:'80%', maxWidth : '100%'}}>
         <img src={pict} alt="" />

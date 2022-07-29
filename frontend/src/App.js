@@ -12,7 +12,7 @@ function App() {
 
   return (
     <div className='app'>
-      <Aside setPict={setPict} setUndo={setUndo} setRedo = {setRedo}/>
+      <Aside setPict={setPict} setUndo={setUndo} setRedo = {setRedo} pict={pict} undo = {undo} redo = {redo}/>
       <Main pict = {pict} setPict = {setPict} undo = {undo} setUndo = {setUndo} redo = {redo} setRedo = {setRedo} />
     </div>
   );
