@@ -7,7 +7,7 @@ import Container from 'react-bootstrap/Container';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 
-const Main = ({pict, setPict, undo, setUndo, redo, setRedo}) => {
+const Main = ({pict, setPict, undo, setUndo, redo, setRedo, loading}) => {
   const [basePict, setBasePict] = useState('');
   const addPict = async (e) => {
     const file = e.target.files[0];
@@ -29,7 +29,7 @@ const Main = ({pict, setPict, undo, setUndo, redo, setRedo}) => {
   }
 
   const undoChanges = () => {
-    if (undo.length > 0) {
+    if (undo.length > 0 && !loading) {
       setPict(undo[undo.length - 1]);
       setUndo(undo.slice(0, undo.length - 1));
       setRedo([pict,...redo])
@@ -37,13 +37,15 @@ const Main = ({pict, setPict, undo, setUndo, redo, setRedo}) => {
   }
 
   const resetChanges = () => {
-    setPict(basePict);
-    setUndo([]);
-    setRedo([]);
+    if (!loading) {
+      setPict(basePict);
+      setUndo([]);
+      setRedo([]);
+    }
   }
 
   const redoChanges = () => {
-    if (redo.length > 0) {
+    if (redo.length > 0 && !loading) {
       setPict(redo[0]);
       setRedo(redo.slice(1));
       setUndo([...undo, pict]);
@@ -64,6 +66,12 @@ const Main = ({pict, setPict, undo, setUndo, redo, setRedo}) => {
       <Container fluid className="d-flex mt-3 justify-content-center" style={{maxHeight:'80%', maxWidth : '100%'}}>
         <img src={pict} alt="" />
       </Container>
+      {
+        pict !== '' ?
+         <Button variant="outline-dark mt-3" href={loading ? '' : pict} download={'photoshop_result'}>{loading? 'Loading' : 'Download'}</Button>
+        :
+        <></>
+      }
     </main>
   );
 };

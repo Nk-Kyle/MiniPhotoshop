@@ -320,4 +320,104 @@ def exp(request):
         encoded = base64.b64encode(buffered.getvalue())
     return JsonResponse({'res':"data:image/"+formatImage+";base64,"+encoded.decode('utf-8')})
 
+def gaussianMask():
+    mask = np.zeros([7,7])
+    sigma = 1.5
+    for i in range(7):
+        for j in range(7):
+            mask[i,j] = 1/(2*np.pi*(sigma**2)) * np.exp(-((i-3)**2 + (j-3)**2)/(2*(sigma**2)))
+    return mask
 
+@csrf_exempt
+def gaussianBluring(request):
+    if request.method == 'POST':
+        matrix, formatImage = convertToMatrix(request)
+        if len(matrix.shape) == 3:
+            result = np.empty([matrix.shape[0],matrix.shape[1],matrix.shape[2]],dtype=np.uint8)
+            matrix = np.pad(matrix, ((3, 3), (3, 3),(0,0)), 'edge' )
+        else:
+            result = np.empty([matrix.shape[0],matrix.shape[1]],dtype=np.uint8)
+            matrix = np.pad(matrix, (3,3), 'edge' )
+        r = matrix.shape[0]
+        c = matrix.shape[1]
+        if len(matrix.shape) == 3:
+            mask = gaussianMask()
+            for i in range(3,r-3):
+                for j in range(3,c-3):
+                    for k in range(3):
+                        result[i-3,j-3,k] = max(0,min(255,np.sum(matrix[i-3:i+3+1,j-3:j+3+1,k]*mask)))
+        else:
+            mask = gaussianMask()
+            for i in range(3,r-3):
+                for j in range(3,c-3):
+                    result[i-3,j-3] = max(0,min(255,np.sum(matrix[i-3:i+3+1,j-3:j+3+1]*mask)))
+        image = Image.fromarray(result)
+        buffered = io.BytesIO()
+        image.save(buffered, format=formatImage)
+        encoded = base64.b64encode(buffered.getvalue())
+    return JsonResponse({'res':"data:image/"+formatImage+";base64,"+encoded.decode('utf-8')})
+
+def highPassGaussianFilter():
+    mask = np.zeros([7,7])
+    sigma = 10
+    for i in range(7):
+        for j in range(7):
+            mask[i,j] = 1 - np.exp(-((i-3)**2 + (j-3)**2)/(2*(sigma**2)))
+    return mask
+
+@csrf_exempt
+def gaussianSharpening(request):
+    if request.method == 'POST':
+        matrix, formatImage = convertToMatrix(request)
+        if len(matrix.shape) == 3:
+            result = np.empty([matrix.shape[0],matrix.shape[1],matrix.shape[2]],dtype=np.uint8)
+            matrix = np.pad(matrix, ((3, 3), (3, 3),(0,0)), 'edge' )
+        else:
+            result = np.empty([matrix.shape[0],matrix.shape[1]],dtype=np.uint8)
+            matrix = np.pad(matrix, (3,3), 'edge' )
+        r = matrix.shape[0]
+        c = matrix.shape[1]
+        if len(matrix.shape) == 3:
+            mask = highPassGaussianFilter()
+            for i in range(3,r-3):
+                for j in range(3,c-3):
+                    for k in range(3):
+                        result[i-3,j-3,k] = max(0,min(255,np.sum(matrix[i-3:i+3+1,j-3:j+3+1,k]*mask)))
+        else:
+            mask = highPassGaussianFilter()
+            for i in range(3,r-3):
+                for j in range(3,c-3):
+                    result[i-3,j-3] = max(0, min(255,np.sum(matrix[i-3:i+3+1,j-3:j+3+1]*mask)))
+        image = Image.fromarray(result)
+        buffered = io.BytesIO()
+        image.save(buffered, format=formatImage)
+        encoded = base64.b64encode(buffered.getvalue())
+    return JsonResponse({'res':"data:image/"+formatImage+";base64,"+encoded.decode('utf-8')})
+
+@csrf_exempt
+def addNoise(request):
+    if request.method == 'POST':
+        matrix, formatImage = convertToMatrix(request)
+        if len(matrix.shape) == 3:
+            result = np.empty([matrix.shape[0],matrix.shape[1],matrix.shape[2]],dtype=np.uint8)
+        else:
+            result = np.empty([matrix.shape[0],matrix.shape[1]],dtype=np.uint8)
+        r = matrix.shape[0]
+        c = matrix.shape[1]
+        mean = 0
+        std = 7
+        gauss = np.random.normal(mean, std, (r,c))
+        if len(matrix.shape) == 3:
+            for i in range(r):
+                for j in range(c):
+                    for k in range(3):
+                        result[i,j,k] = max(0,min(255,matrix[i,j,k] + gauss[i,j]))
+        else:
+            for i in range(r):
+                for j in range(c):
+                    result[i,j] = max(0,min(255,matrix[i,j] + gauss[i,j]))
+        image = Image.fromarray(result)
+        buffered = io.BytesIO()
+        image.save(buffered, format=formatImage)
+        encoded = base64.b64encode(buffered.getvalue())
+    return JsonResponse({'res':"data:image/"+formatImage+";base64,"+encoded.decode('utf-8')})

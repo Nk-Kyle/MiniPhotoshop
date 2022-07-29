@@ -6,33 +6,48 @@ import {
 } from 'react-pro-sidebar';
 import {GrRotateRight, GrRotateLeft} from 'react-icons/gr';
 import {GiHorizontalFlip, GiVerticalFlip} from 'react-icons/gi';
-import {AiOutlineZoomIn, AiOutlineZoomOut,AiFillMinusCircle,AiOutlineFieldBinary} from 'react-icons/ai';
+import {AiOutlineZoomIn, AiOutlineZoomOut,AiFillMinusCircle,AiOutlineFieldBinary, AiOutlineBorder} from 'react-icons/ai';
 import {BsFillBrightnessHighFill} from 'react-icons/bs';
 import {ImContrast} from 'react-icons/im';
-import {MdDarkMode} from 'react-icons/md';
+import {MdDarkMode, MdLensBlur} from 'react-icons/md';
 import {BsArrow90DegDown,BsArrow90DegUp} from 'react-icons/bs';
+import {CgEditNoise} from 'react-icons/cg';
 
 
-const Aside = ({setPict, setUndo, setRedo, pict, undo}) => {
+const Aside = ({setPict, setUndo, setRedo, pict, undo, loading, setLoading}) => {
 
   const requestApi = async (url) => {
-    if (pict !== '') {
-      const response = await fetch("http://127.0.0.1:8000/api/"+url+"/", {
-        method: 'POST',
-        body: JSON.stringify({
-          "pict": pict
-        }),
-        headers: {
-          'Content-Type': 'application/json'
+    if (!loading) {
+      setLoading(true);
+      try{
+        if (pict !== '') {
+          const response = await fetch("http://127.0.0.1:8000/api/"+url+"/", {
+            method: 'POST',
+            body: JSON.stringify({
+              "pict": pict
+            }),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          if (!response.ok) {
+            throw new Error(`Error! status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          setUndo([...undo, pict])
+          setRedo([])
+          setPict(result.res)
         }
-      });
-      const result = await response.json();
-      setUndo([...undo, pict])
-      setRedo([])
-      setPict(result.res)
-      
+      } catch (error) {}
+      finally {
+        setLoading(false);
+      }
     }
-  }
+    else {
+      console.log('Another request is in progress');
+    }
+  };
 
   return (
     <ProSidebar breakPoint='md'>
@@ -50,6 +65,9 @@ const Aside = ({setPict, setUndo, setRedo, pict, undo}) => {
             <MenuItem icon={<ImContrast />}onClick={() => requestApi("contrast")}>Contrast Image</MenuItem>
             <MenuItem icon={<BsArrow90DegDown />}onClick={() => requestApi("log")}>Log Transform</MenuItem>
             <MenuItem icon={<BsArrow90DegUp />}onClick={() => requestApi("exp")}>Exponential Transform</MenuItem>
+            <MenuItem icon={<MdLensBlur />}onClick={() => requestApi("gaussianBlur")}>Blur Image</MenuItem>
+            <MenuItem icon={<AiOutlineBorder />}onClick={() => requestApi("gaussianSharpening")}>Sharpen Image</MenuItem>
+            <MenuItem icon={<CgEditNoise />}onClick={() => requestApi("addNoise")}>Add Noise</MenuItem>
             
 
         </Menu>

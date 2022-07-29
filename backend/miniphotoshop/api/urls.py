@@ -1,3 +1,4 @@
+from random import gauss
 from django.urls import path
 from .views import *
 
@@ -14,5 +15,8 @@ urlpatterns = [
     path('brighten/', brighten),
     path('contrast/', contrast),
     path('log/', log),
-    path('exp/', exp)
+    path('exp/', exp),
+    path('gaussianBlur/', gaussianBluring),
+    path('gaussianSharpening/', gaussianSharpening),
+    path('addNoise/', addNoise)
 ]
